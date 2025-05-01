@@ -9,8 +9,6 @@ export enum ChatStatusEnum {
     "COMPLETED" = "COMPLETED",
 
 }
-
-
 export interface ThreadInterface extends UserTimestampSchemaInterface {
     _id: ObjectID;
     participants: CustomerInterface["_id"][];

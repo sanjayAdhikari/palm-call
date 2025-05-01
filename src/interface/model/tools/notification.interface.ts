@@ -14,7 +14,8 @@ export interface ChatNotificationPayload {
     threadID: ThreadInterface["_id"]
 }
 
-export interface NotificationInterface<PayloadType = ChatNotificationPayload> extends UserTimestampSchemaInterface {
+// later we can make use of generic types here to pass the payload
+export interface NotificationInterface extends UserTimestampSchemaInterface {
     _id: ObjectID,
     user: CustomerInterface['_id'],
     validUntil: Date,
@@ -26,7 +27,7 @@ export interface NotificationInterface<PayloadType = ChatNotificationPayload> ex
 
     category: NotificationCategoryEnum,
     hasRead?: boolean,
-    payload: PayloadType, // there would be only one type of payload at a time
+    payload: ChatNotificationPayload, // there would be only one type of payload at a time
 }
 
 export interface NotificationDocumentInterface extends Document, NotificationInterface {

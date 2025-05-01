@@ -1,125 +1,182 @@
-import {FilterQuery, PaginateResult} from "mongoose";
+import FCMService from "@service/firebase/fcm.service";
+import { FilterQuery, PaginateResult } from 'mongoose';
+import { NotificationModel, CustomerModel } from '@model/index';
 import {
-    CustomerInterface,
-    NotificationDocumentInterface,
     NotificationInterface,
-} from "../../../interface/model";
-import {ApiInterface} from "../../../interface/api.interface";
-import {NotificationModel} from "../../model";
-import {paginateModel} from "../../../utils/db.util";
-import {formatAPI, formatError} from "../../../utils";
-import ServerLogger from "../../../middleware/server_logging.middleware";
-import ErrorStringConstant from "../../../config/error_string.config";
-import {ActiveStatusEnum} from "../../../interface/repository.interface";
+    NotificationCategoryEnum,
+    CustomerInterface,
+    ChatNotificationPayload
+} from '@interface/model';
+import { ApiInterface } from '@interface/api.interface';
+import { formatAPI, formatError } from '@utils/index';
+import { paginateModel, toObjectID } from '@utils/db.util';
+import ErrorStringConstant from '@config/error_string.config';
+import ServerLogger from '@middleware/server_logging.middleware';
 
-class NotificationRepository {
-    private user!: CustomerInterface;
+export class NotificationRepository {
+    private sender: CustomerInterface;
 
-    private constructor() {
+    constructor(sender: CustomerInterface) {
+        this.sender = sender;
     }
 
-    static async init(user?: CustomerInterface): Promise<NotificationRepository> {
-        const instance: NotificationRepository = new NotificationRepository();
-        if (user) {
-            instance.user = user;
-        }
-        return instance;
-    }
-
-
-    async readAllNotificationCustomer(page?: number, pageSize?: number): Promise<ApiInterface<PaginateResult<NotificationInterface>>> {
+    /**
+     * Send notification to a specific user
+     */
+    async sendToUser(
+        recipientId: string,
+        category: NotificationCategoryEnum,
+        title: string,
+        body: string,
+        link = '',
+        photo = '',
+        payload?: ChatNotificationPayload
+    ): Promise<ApiInterface<NotificationInterface>> {
         try {
+            const recipient = toObjectID(recipientId);
+            const validUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-            const notificationFilter: FilterQuery<NotificationInterface> = {
-                isDeleted: false,
-                broadcastToLaunch: false,
-                user: this.user._id,
-                validUntil: {$gt: new Date()}
-            }
-            const itemDetail: PaginateResult<NotificationInterface> = await paginateModel<NotificationInterface>(NotificationModel, notificationFilter, 'title body link photo category createdAt hasRead', [], false, page, pageSize, false)
-            await NotificationModel.updateMany({
-                ...notificationFilter,
+            const doc = await NotificationModel.create({
+                user: recipient,
+                validUntil,
+                title,
+                body,
+                link,
+                photo,
+                category,
                 hasRead: false,
-            }, {$set: {hasRead: true}})
-            return formatAPI('', itemDetail);
-        } catch (error) {
-            ServerLogger.error(error);
-            console.error(error);
+                payload: payload as any,
+            });
+
+            const userDoc = await CustomerModel.findById(recipient).select('fcmToken').lean();
+            const tokens = (userDoc?.fcmToken || []).map(t => t.token);
+            await FCMService.send(doc.toObject(), tokens.length ? tokens : undefined);
+
+            return formatAPI('', doc.toObject());
+        } catch (err: any) {
+            ServerLogger.error(err);
             return formatError(ErrorStringConstant.UNKNOWN_ERROR);
         }
     }
 
-    async readNotificationDetail(itemID: NotificationInterface["_id"]): Promise<ApiInterface<NotificationInterface>> {
+    /**
+     * List all notifications for the current user, mark fetched as read
+     */
+    async readAll(
+        page?: number,
+        pageSize?: number
+    ): Promise<ApiInterface<PaginateResult<NotificationInterface>>> {
         try {
-            const notificationFilter: FilterQuery<NotificationInterface> = {
-                _id: itemID,
+            const filter: FilterQuery<NotificationInterface> = {
+                user: toObjectID(this.sender._id),
                 isDeleted: false,
-                user: this.user._id,
-            }
-
-            const itemDetail: NotificationDocumentInterface | null = await NotificationModel.findOne(notificationFilter, 'createdAt title body link photo category');
-            if (!itemDetail) return formatError(ErrorStringConstant.NO_ITEMS_FOUND);
-            itemDetail.hasRead = true;
-            itemDetail.save().then();
-            return formatAPI('', itemDetail?.toObject());
-        } catch (error) {
-            ServerLogger.error(error);
-            console.error(error);
-            return formatError(ErrorStringConstant.UNKNOWN_ERROR);
-        }
-    }
-
-    async deleteNotification(itemID: NotificationInterface['_id']): Promise<ApiInterface<boolean>> {
-        try {
-            if (!itemID) return formatError(ErrorStringConstant.REQUIRED('Notification ID'))
-
-            const filter: any = {
-                isDeleted: false,
-                user: this.user._id,
-                _id: itemID,
+                validUntil: { $gt: new Date() },
             };
 
-            const existedItem: NotificationDocumentInterface | null = await NotificationModel.findOne(filter);
-            if (!existedItem) return formatError('No Notification is found.');
-            existedItem.isDeleted = true;
-            const deletedData = await existedItem.save();
-            if (deletedData) {
-                return formatAPI(ErrorStringConstant.SUCCESS_DELETE('Notification'), true);
-            }
-            return formatError(ErrorStringConstant.UNABLE_TO_REMOVE)
+            const result = await paginateModel<NotificationInterface>(
+                NotificationModel,
+                filter,
+                'title body link photo category createdAt hasRead payload',
+                [],
+                false,
+                page,
+                pageSize,
+                false
+            );
 
-        } catch (error) {
+            await NotificationModel.updateMany(
+                { ...filter, hasRead: false },
+                { $set: { hasRead: true } }
+            );
+
+            return formatAPI('', result);
+        } catch (error: any) {
             ServerLogger.error(error);
-            console.error(error);
+            return formatError(ErrorStringConstant.UNKNOWN_ERROR);
+        }
+    }
+
+    /**
+     * Read a single notification detail, mark as read if unread
+     */
+    async readDetail(
+        notificationId: string
+    ): Promise<ApiInterface<NotificationInterface>> {
+        try {
+            const filter: FilterQuery<NotificationInterface> = {
+                _id: toObjectID(notificationId),
+                user: toObjectID(this.sender._id),
+                isDeleted: false,
+            };
+
+            const doc = await NotificationModel.findOne(filter)
+                .select('createdAt title body link photo category payload hasRead')
+                .lean();
+            if (!doc) return formatError(ErrorStringConstant.NO_ITEMS_FOUND);
+
+            if (!doc.hasRead) {
+                await NotificationModel.updateOne(filter, { $set: { hasRead: true } });
+            }
+
+            return formatAPI('', doc);
+        } catch (error: any) {
+            ServerLogger.error(error);
+            return formatError(ErrorStringConstant.UNKNOWN_ERROR);
+        }
+    }
+
+    /**
+     * Soft-delete a notification
+     */
+    async delete(
+        notificationId: string
+    ): Promise<ApiInterface<boolean>> {
+        try {
+            if (!notificationId) return formatError(ErrorStringConstant.REQUIRED('Notification ID'));
+
+            const filter: FilterQuery<NotificationInterface> = {
+                _id: toObjectID(notificationId),
+                user: toObjectID(this.sender._id),
+                isDeleted: false,
+            };
+
+            const doc = await NotificationModel.findOne(filter);
+            if (!doc) return formatError('Notification not found');
+
+            doc.isDeleted = true;
+            await doc.save();
+            return formatAPI('', true);
+        } catch (error: any) {
+            ServerLogger.error(error);
             return formatError(ErrorStringConstant.UNABLE_TO_REMOVE);
         }
     }
 
-    async markNotificationReadUnread(itemID: NotificationInterface['_id'], toggleStatus: ActiveStatusEnum): Promise<ApiInterface<boolean>> {
+    /**
+     * Toggle read/unread status
+     */
+    async markReadUnread(
+        notificationId: string,
+        read: boolean
+    ): Promise<ApiInterface<boolean>> {
         try {
-
             const filter: FilterQuery<NotificationInterface> = {
+                _id: toObjectID(notificationId),
+                user: toObjectID(this.sender._id),
                 isDeleted: false,
-                _id: itemID,
-                user: this.user._id
             };
 
-            const existedItem: NotificationDocumentInterface | null = await NotificationModel.findOne(filter, 'hasRead');
-            if (!existedItem) return formatError('No notification is found.');
-            existedItem.hasRead = toggleStatus === ActiveStatusEnum.on;
-            const updatedData = await existedItem.save();
-            if (updatedData) {
-                return formatAPI(`Notification is successfully marked as ${toggleStatus === ActiveStatusEnum.on ? 'read' : 'unread'}`, true);
-            }
-            return formatError('Cannot change read status of the notification.')
+            const doc = await NotificationModel.findOne(filter).select('hasRead');
+            if (!doc) return formatError('Notification not found');
 
-        } catch (error) {
+            doc.hasRead = read;
+            await doc.save();
+            return formatAPI('', true);
+        } catch (error: any) {
             ServerLogger.error(error);
-            console.error(error);
-            return formatError('Error while changing the read status.');
+            return formatError('Error changing read status');
         }
     }
-
 }
 
 export default NotificationRepository;
