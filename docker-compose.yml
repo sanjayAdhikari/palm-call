@@ -1,79 +1,17 @@
-version: "3"
+version: "3.9"
 
 services:
-  evolv_app_api:
-    container_name: evolv_app_api
-    image: sanjayadh/evolv_app_api:latest
+  palmmind_backend:
     build:
-      context: ./evolv_app_api
+      context: .
       dockerfile: Dockerfile
+    image: palmmind_backend:v1
+    container_name: palmmind_backend_system
     ports:
-      - ${PORT}:${PORT} #host:container
+      - "8001:8001"
+    env_file:
+      - .env
     volumes:
-      - ./appData:/app/appData
-      - ./public:/app/public
-      - ./server_log:/app/server_log
-      - ./client_log:/app/client_log
-    networks:
-      - app-network
-    environment: #only copied when the image is up
-      - PORT=${PORT}
-      - NODE_ENV=${NODE_ENV}
-      - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
-      - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
-      - REFRESH_TOKEN_EXPIRY_DAY=${REFRESH_TOKEN_EXPIRY_DAY}
-      - ACCESS_TOKEN_EXPIRY_HOUR=${ACCESS_TOKEN_EXPIRY_HOUR}
-      - SEED_ADMIN_EMAIL=${SEED_ADMIN_EMAIL}
-      - SEED_ADMIN_USERNAME=${SEED_ADMIN_USERNAME}
-      - SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD}
-      - SEED_ADMIN_NAME=${SEED_ADMIN_NAME}
-      - CIPHER_SECRET_KEY=${CIPHER_SECRET_KEY}
-      - DISTANCE_MATRIX_GOOGLE_MAP_KEY=${DISTANCE_MATRIX_GOOGLE_MAP_KEY}
-      - MONGODB_DB=${MONGODB_DB}
-      - MONGODB_HOST=${MONGODB_HOST}
-      - MONGODB_PORT=${MONGODB_PORT}
-      - MONGODB_USERNAME=${MONGODB_USERNAME}
-      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
-      - REDIS_USERNAME=${REDIS_USERNAME}
-      - OTP_LENGTH=${OTP_LENGTH}
-    depends_on:
-      - redis
-      - mongodb
-
-  mongodb:
-    image: mongo:6-jammy
-    restart: always
-    container_name: mongodb
-    environment:
-      MONGODB_REPLICA_NAME: ${MONGODB_REPLICA_NAME}
-      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGODB_DB}
-    volumes:
-      - ./appData/mongo/data:/data/db
-    ports:
-      - "27017:27017"
-    networks:
-      - app-network
-    healthcheck:
-      test: [ "CMD", "mongo", "--eval", "db.runCommand({ ping: 1 })" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: "redis:7.2.1-alpine"
-    container_name: redis
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-      - REDIS_PORT_NUMBER=${REDIS_PORT}
-    ports:
-      - ${REDIS_PORT}:${REDIS_PORT}
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
+      - /var/www/public-image:/var/www/app/palmmind/public-image
+    restart: unless-stopped
+    command: [ "node", "-r", "tsconfig-paths/register", "build/index.js" ]

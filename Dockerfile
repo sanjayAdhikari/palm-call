@@ -4,7 +4,7 @@ FROM node:20-alpine3.17 as builder
 
 #META
 LABEL version='1.0.0'
-LABEL description="Image for Hyre Cargo"
+LABEL description="Image for Palmmind Chat"
 
 #RUN mkdir -p app/node_modules && chown -R node:node app
 

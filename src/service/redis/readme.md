@@ -42,5 +42,3 @@ connect to redis
 ## install redis in nodejs
 
 `npm install redis` in project directory
-
-redis-cli -u redis://evolvdev:EvolvDev%40666@redis-10058.c289.us-west-1-2.ec2.cloud.redislabs.com:10058

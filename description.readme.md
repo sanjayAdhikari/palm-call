@@ -6,7 +6,7 @@ Flow
 3. Fill all the package detail like commodity type, number of box, and for each boxes: size, weight, volumetric
    weight. (we will show the updated estimated Freight charge since we already have rate list from all the vendor, but
    it is still estimated because we haven't verified the package from our end yet!). User will also be able to choose
-   pickup facility to either choose self drop off or Hyre drop off to drop the goods to cargo company (we will show the
+   pickup facility to either choose self drop off or Palmmind drop off to drop the goods to cargo company (we will show the
    price)
 4. Submit KYC (only for the first order, any service) will take this as a shipper detail, user can change pickup
    location on every order
@@ -15,7 +15,7 @@ Flow
 6. After all these detail, system will generate wayBillNumber on the overview/confirmation page on this page we will
    show all the details that is filled by the user and can edit the specific section, on this page, user can also apply
    the coupon code which they will see the estimated discounted price.
-7. After User confirmed the order, Hyre admin will either accept or reject the order depending on the data provided by
+7. After User confirmed the order, Palmmind admin will either accept or reject the order depending on the data provided by
    the user, if accepted -> our cargo boy will go and collect the goods and drop it to the cargo company, and cargo
    company will amendment the order with the actual weight (after packaging weight including boxes and cartoons).
 8. After cargo amendment, User need to either go using notification or activity list page, selecting that order detail,
@@ -32,8 +32,8 @@ Can manage consignee from the profile menu,
 - track transactions history
 - notifications
 
-So app will have 3 main actor (End User, Hyre Admin, Vendor Admin).
-Hyre admin can
+So app will have 3 main actor (End User, Palmmind Admin, Vendor Admin).
+Palmmind admin can
 
 - manage vendor,
 - manage user
