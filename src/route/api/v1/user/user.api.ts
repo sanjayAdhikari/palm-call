@@ -4,6 +4,7 @@ import {authentication, authorize, getRefreshToken} from "@middleware/access.mid
 import {defaultLimiter} from "@middleware/limitter.middleware";
 import parseValidation from "@middleware/parseValidation.middleware";
 import {itemIDValidation} from "@service/validation";
+import {idValidParam} from "@service/validation/validator.index";
 import {Router} from "express";
 import {query} from "express-validator";
 
@@ -33,7 +34,9 @@ const initializeCustomerApi: () => Router = () => {
             customerController.currentProfile.bind(customerController))
         .get(RouteURL.customer.customer_detail,
             authentication,
-            itemIDValidation,
+            [
+                idValidParam('customerID', 'customer'),
+            ],
             parseValidation,
             customerController.customerProfile.bind(customerController))
         .get(RouteURL.customer.user_list,

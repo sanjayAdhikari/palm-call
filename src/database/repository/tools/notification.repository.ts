@@ -151,32 +151,6 @@ export class NotificationRepository {
             return formatError(ErrorStringConstant.UNABLE_TO_REMOVE);
         }
     }
-
-    /**
-     * Toggle read/unread status
-     */
-    async markReadUnread(
-        notificationId: string,
-        read: boolean
-    ): Promise<ApiInterface<boolean>> {
-        try {
-            const filter: FilterQuery<NotificationInterface> = {
-                _id: toObjectID(notificationId),
-                user: toObjectID(this.sender._id),
-                isDeleted: false,
-            };
-
-            const doc = await NotificationModel.findOne(filter).select('hasRead');
-            if (!doc) return formatError('Notification not found');
-
-            doc.hasRead = read;
-            await doc.save();
-            return formatAPI('', true);
-        } catch (error: any) {
-            ServerLogger.error(error);
-            return formatError('Error changing read status');
-        }
-    }
 }
 
 export default NotificationRepository;

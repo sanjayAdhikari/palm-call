@@ -13,7 +13,7 @@ import {CustomerInterface, UserTypeEnum} from "../../interface/model";
 import {ApiInterface} from "../../interface/api.interface";
 import {formatAPI, formatError} from "../format.util";
 
-const REFRESH_TOKEN_TTL =  2 * 24 * 60 * 60; // 2 DAYS
+export const REFRESH_TOKEN_TTL =  2 * 24 * 60 * 60; // 2 DAYS
 
 class SpaceJwtSecurity {
     static getTokenKeyName(tenantID: string, uuid?: string) {

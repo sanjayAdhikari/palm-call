@@ -51,6 +51,6 @@ export interface LoginResponseInterface {
     signup: boolean,
     userType: UserTypeEnum,
     accessToken: string,
-    refreshToken: string,
+    refreshToken?: string,
     userID: ObjectID,
 }

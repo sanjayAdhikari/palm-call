@@ -8,9 +8,20 @@ const RouteURL: any = {
         login: '/login',
         logout: '/logout',
         current_profile: '/current',
-        customer_detail: '/detail/:itemID',
-        refresh_token: '/refresh-access-token/:space',
+        customer_detail: '/detail/:customerID',
+        refresh_token: '/refresh-access-token',
         user_list: '/',
+    },
+    notification: {
+        read_all: '/',
+        read_detail: '/detail/:notificationID',
+        delete: '/delete/:notificationID',
+    },
+    chat: {
+        read_thread: '/thread/:participantID',
+        threads: '/',
+        delete_thread: '/thread/:threadID',
+        messages: '/messages/:threadID',
     },
 }
 
