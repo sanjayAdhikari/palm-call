@@ -1,0 +1,12 @@
+node_modules
+.DS_Store
+build
+server_log
+package-lock.json
+client_log
+.env
+.idea
+client
+*.rdb
+public
+.env.dev

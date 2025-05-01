@@ -1,0 +1,6 @@
+# node modules
+.git
+node_modules
+package-lock.json
+Makefile
+readme.md
