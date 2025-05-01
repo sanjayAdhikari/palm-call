@@ -25,5 +25,7 @@ const environmentVariable: EnvironmentLabelInterface = {
     REDIS_PORT: 'REDIS_PORT',
     REDIS_USERNAME: 'REDIS_USERNAME',
     REDIS_PASSWORD: 'REDIS_PASSWORD',
+    API_GATEWAY_HOST: 'API_GATEWAY_HOST',
+    FRONTEND_HOST: 'FRONTEND_HOST',
 };
 export default environmentVariable;

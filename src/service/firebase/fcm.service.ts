@@ -1,5 +1,5 @@
 import admin from 'firebase-admin';
-import serviceAccount from '@config/firebase-service-account.json';
+import serviceAccount from '@config/firebase-adminsdk.json';
 import { NotificationInterface } from '@interface/model';
 
 /**
@@ -9,7 +9,7 @@ import { NotificationInterface } from '@interface/model';
  */
 if (!admin.apps.length) {
     admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
+        credential: admin.credential.cert(serviceAccount  as unknown as admin.ServiceAccount),
     });
 }
 

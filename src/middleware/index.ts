@@ -11,7 +11,7 @@ import fileUpload from 'express-fileupload';
 import path from "path";
 import config from "../config";
 import CustomEnvironmentVariables from "../config/custom-environment-variables";
-import {getNumber} from "../utils/helper";
+import {getNumber} from "@utils/helper";
 import helmet from 'helmet';
 // @ts-ignore
 import xss from 'xss-clean';
@@ -51,8 +51,13 @@ const middleware = (app: Application) => {
         }),
     );
 
+    console.log({
+        origin: config(CustomEnvironmentVariables.FRONTEND_HOST),  // ← must be exact
+        credentials: true,
+    })
     app.use(cors({
-        origin: '*'
+        origin: config(CustomEnvironmentVariables.FRONTEND_HOST),  // ← must be exact
+        credentials: true,
     }));
     app.use([
         xss(),

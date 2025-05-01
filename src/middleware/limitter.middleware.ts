@@ -1,18 +1,9 @@
-import {RedisStore} from 'rate-limit-redis'
-import {limiterRedisConfig} from "../utils/config.util";
-import RedisClient from 'ioredis'
+import {CustomerInterface} from "@interface/model";
 import {NextFunction, Request, Response} from 'express';
-import {CustomerInterface} from "../interface/model";
 
-const limiterRedisCred = limiterRedisConfig();
-const redisClient = new RedisClient(limiterRedisCred);
 const allowList = ['']
 
 const rateLimiterOption = () => ({
-    store: new RedisStore({
-        // @ts-ignore
-        sendCommand: (...args: string[]) => redisClient.duplicate().call(...args),
-    }),
     statusCode: 429,
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers

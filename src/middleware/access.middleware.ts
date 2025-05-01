@@ -13,6 +13,7 @@ export const getRefreshToken = function (req: Request, res: Response, next: Next
 
     // // decode refresh token from cookies // use this to prevent XSR client side attack
     const refreshToken = req.cookies['refreshToken'];
+    console.log('refreshToken', refreshToken)
     if (!refreshToken) return res.status(401).json(formatError('UnAuthorized Access!!'))
     // req.headers['authorization'] = refreshToken;
 

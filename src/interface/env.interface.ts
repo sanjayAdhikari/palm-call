@@ -23,6 +23,8 @@ export interface EnvironmentLabelInterface {
     REDIS_PORT: string,
     REDIS_USERNAME: string,
     REDIS_PASSWORD: string,
+    API_GATEWAY_HOST: string,
+    FRONTEND_HOST: string,
 }
 
 export interface EnvironmentValueInterface {
@@ -50,6 +52,9 @@ export interface EnvironmentValueInterface {
     REDIS_PORT: number,
     REDIS_USERNAME: string,
     REDIS_PASSWORD: string,
+
+    API_GATEWAY_HOST: string,
+    FRONTEND_HOST: string,
 
     [key: string]: any;
 }

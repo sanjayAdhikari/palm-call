@@ -9,20 +9,20 @@ class CacheRepository {
         return `${AppConstant.refreshTokenPrefix}_${userID}_${uuid ?? ''}`
     }
 
-    async setRefreshToken(email: string, uuid: string, token: string, cacheAliveTime: number = 60 * 60) {
+    async setRefreshToken(id: string, uuid: string, token: string, cacheAliveTime: number = 60 * 60) {
         await (await CacheClient.init()).set(
             CacheRepository.getTokenKeyNamePrefix(
-                email.toString(),
+                id.toString(),
                 uuid,),
             token,
             cacheAliveTime
         );
     }
 
-    async getRefreshToken(email: string, uuid: string,): Promise<string> {
+    async getRefreshToken(id: string, uuid: string,): Promise<string> {
         return await (await CacheClient.init()).get(
             CacheRepository.getTokenKeyNamePrefix(
-                email.toString(),
+                id.toString(),
                 uuid,
             ),
         ) as string;

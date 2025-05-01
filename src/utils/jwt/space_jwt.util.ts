@@ -2,15 +2,15 @@ import jwt from 'jsonwebtoken';
 import environmentVariable from "../../config/custom-environment-variables";
 import config from "../../config";
 import ServerLogger from "../../middleware/server_logging.middleware";
-import {JwtPayload, OtpJwtPayload,} from "../../interface/config.interface";
-import {NullString, ObjectID} from "../../interface/generic.type";
-import {AppConstant} from "../../config/constant";
+import {JwtPayload, OtpJwtPayload,} from "@interface/config.interface";
+import {NullString, ObjectID} from "@interface/generic.type";
+import {AppConstant} from "@config/constant";
 import CacheClient from "../../service/redis/init_redis.service";
 import {generateUniqueNumberFromMongoId} from "../crypto.util";
 import {Types} from "mongoose";
 import CacheRepository from "../../service/redis/repository.cache";
-import {CustomerInterface, UserTypeEnum} from "../../interface/model";
-import {ApiInterface} from "../../interface/api.interface";
+import {CustomerInterface, UserTypeEnum} from "@interface/model";
+import {ApiInterface} from "@interface/api.interface";
 import {formatAPI, formatError} from "../format.util";
 
 export const REFRESH_TOKEN_TTL =  2 * 24 * 60 * 60; // 2 DAYS
@@ -180,7 +180,7 @@ class SpaceJwtSecurity {
     }> {
         try {
             if (!uuid) Error('Error Occurs while generating a token.')
-            const refreshToken: NullString = await SpaceJwtSecurity.signRefreshToken(email, userType, uuid);
+            const refreshToken: NullString = await SpaceJwtSecurity.signRefreshToken(userID, userType, uuid);
             const accessToken: NullString = SpaceJwtSecurity.signAccessToken(userID!, email, userType, uuid);
             return {accessToken, refreshToken};
         } catch (error) {
@@ -190,21 +190,21 @@ class SpaceJwtSecurity {
         }
     }
 
-    static async signRefreshToken(email: string, userType?: UserTypeEnum, uuid?: string): Promise<string> {
+    static async signRefreshToken(userID: CustomerInterface["_id"], userType?: UserTypeEnum, uuid?: string): Promise<string> {
         try {
             uuid = uuid || generateUniqueNumberFromMongoId(new Types.ObjectId());
             if (!uuid) Error('Error Occurs while generating a token.')
             const JWTPayload: Partial<JwtPayload> = {
                 type: 1,
                 userType,
-                email,
+                id: userID.toString(),
                 uuid: uuid as string, // Generate a UUID and add it to the JWT payload
             };
             const secret = config<string>(environmentVariable.REFRESH_TOKEN_SECRET);
             const expiresIn = config<number>(environmentVariable.REFRESH_TOKEN_EXPIRY_DAY);
             const token = this.signToken(secret, JWTPayload, expiresIn * 60 * 60 * 24);
             const cache = new CacheRepository();
-            await cache.setRefreshToken(email, JWTPayload.uuid!, token, REFRESH_TOKEN_TTL);
+            await cache.setRefreshToken(JWTPayload.id!, JWTPayload.uuid!, token, REFRESH_TOKEN_TTL);
             return token;
         } catch (error) {
             console.log('error', error);

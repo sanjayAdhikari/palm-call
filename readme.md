@@ -32,11 +32,15 @@ npm install
 
 ### Configuration
 
-1. Copy the example environment file and update values:
+1. Copy your firebase admin-sdk json file under; filename should be matched 
+   ```bash
+   src/config/firebase-adminsdk.json
+   
+2. Copy the example environment file and update values:
    ```bash
    cp .env.example .env
    ```
-2. Open `.env` and set:
+3. Open `.env` and set:
     - `MONGODB_URI` (e.g. `mongodb://localhost:27017/palm`)
     - `REDIS_URL` (e.g. `redis://localhost:6379`)
     - `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`

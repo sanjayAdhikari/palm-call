@@ -1,13 +1,17 @@
+import {ApiInterface} from '@interface/api.interface';
+import {ObjectID} from "@interface/generic.type";
+import {CustomerDocumentInterface, CustomerInterface, UserTypeEnum} from '@interface/model';
+import {LoginResponseInterface} from '@interface/repository.interface';
+import ServerLogger from "@middleware/server_logging.middleware";
 import {CustomerModel} from "@model/index";
-import { FilterQuery, PaginateResult } from 'mongoose';
-import { ApiInterface } from '@interface/api.interface';
-import { LoginResponseInterface } from '@interface/repository.interface';
-import { CustomerDocumentInterface, CustomerInterface, UserTypeEnum } from '@interface/model';
-import { formatAPI, formatError } from '@utils/index';
-import SpaceJwtSecurity from '@utils/jwt/space_jwt.util';
-import { generateGamifiedUsername } from '@utils/random-username';
-import { paginateModel, toObjectID } from '@utils/db.util';
 import CacheRepository from '@service/redis/repository.cache';
+import {paginateModel, toObjectID} from '@utils/db.util';
+import { objectToDot } from "@utils/dot.object";
+import {capitalizeFirstLetter} from "@utils/helper";
+import {formatAPI, formatError} from '@utils/index';
+import SpaceJwtSecurity from '@utils/jwt/space_jwt.util';
+import {generateGamifiedUsername} from '@utils/random-username';
+import {FilterQuery, PaginateResult} from 'mongoose';
 
 class CustomerRepository {
     // Create a unique username for new users
@@ -22,6 +26,37 @@ class CustomerRepository {
         return 'User';
     }
 
+    async editProfile(userID: ObjectID, customerData: Partial<CustomerInterface>): Promise<ApiInterface<ObjectID>> {
+        try {
+            // update
+            const existedItem: CustomerInterface | null = await CustomerModel.findOne({
+                _id: userID,
+                isDeleted: false,
+            }).lean();
+            if (!existedItem) {
+                return formatError('Profile does not exist anymore.');
+            }
+            if (!existedItem.isActive ?? true) {
+                return formatError('Archived profile cannot be modified.');
+            }
+            const cacheRepo = new CacheRepository();
+
+            // check for onBoarding
+            await Promise.all([
+                CustomerModel.findByIdAndUpdate(userID, {
+                    $set: objectToDot(customerData),
+                }),
+                cacheRepo.setSpaceUser(userID, null),
+            ]);
+
+            return formatAPI('Profile is successfully Updated', userID);
+        } catch (error) {
+            ServerLogger.error(error);
+            console.error(error);
+            return formatError(`Error while editing the profile.`);
+        }
+    }
+
     // Handle login or registration with email and password
     async loginRegister(
         email: string,
@@ -34,6 +69,9 @@ class CustomerRepository {
         let userDoc: CustomerDocumentInterface | null = await CustomerModel.findOne({ email, userType, isDeleted: false });
 
         if (!userDoc) {
+            if(userType !== UserTypeEnum.USER) {
+                return formatError(`You are not invited as ${capitalizeFirstLetter(userType)}`)
+            }
             // No user found: register a new user record
             const username = await CustomerRepository.generateRandomUsername();
             userDoc = new CustomerModel({
@@ -67,7 +105,9 @@ class CustomerRepository {
 
         // Cache user data for fast retrieval
         const cacheRepo = new CacheRepository();
-        await cacheRepo.setSpaceUser(userDoc._id, userDoc.toObject());
+        const toCache = userDoc.toObject();
+        delete toCache?.password;
+        await cacheRepo.setSpaceUser(userDoc._id, toCache);
 
         // Return login response including tokens and signup flag
         return formatAPI('', {
@@ -121,7 +161,7 @@ class CustomerRepository {
         if (userType) filter.userType = userType;
 
         const userDetail = await CustomerModel.findOne(filter)
-            .select('-isDeleted -__v -twitter -isSeed')
+            .select('-isDeleted -__v -twitter -isSeed -password')
             .lean();
 
         if (userDetail) {

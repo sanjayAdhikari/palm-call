@@ -7,6 +7,7 @@ const RouteURL: any = {
     customer: {
         login: '/login',
         logout: '/logout',
+        editProfile: '/edit-profile',
         current_profile: '/current',
         customer_detail: '/detail/:customerID',
         refresh_token: '/refresh-access-token',

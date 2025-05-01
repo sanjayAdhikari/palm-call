@@ -10,3 +10,4 @@ client
 *.rdb
 public
 .env.dev
+*firebase-adminsdk*.json

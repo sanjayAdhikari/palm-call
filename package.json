@@ -1,5 +1,5 @@
 {
-  "name": "palmmind-chat",
+  "name": "palmmind_chat",
   "version": "1.0.0",
   "description": "backend application for Palmmind",
   "main": "build/index.js",

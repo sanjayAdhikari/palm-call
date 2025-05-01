@@ -1,11 +1,13 @@
 import {assertUserInRequest} from '@interface/api.interface';
 import {UserTypeEnum} from '@interface/generic.enum';
+import {CustomerInterface} from "@interface/model";
 import ServerLogger from '@middleware/server_logging.middleware';
 import {customerRepository} from "@repository/index";
 import {toObjectID} from '@utils/db.util';
 import {formatAPI, formatError} from '@utils/format.util';
 import SpaceJwtSecurity, {REFRESH_TOKEN_TTL} from "@utils/jwt/space_jwt.util";
 import {Request, Response} from 'express';
+import _ from "lodash";
 
 class CustomerController {
 
@@ -13,13 +15,18 @@ class CustomerController {
     async logout(req: Request, res: Response) {
         try {
             const refreshToken = req.cookies['refreshToken'];
+            console.log('refreshToken', refreshToken)
             if (refreshToken) {
                 await SpaceJwtSecurity.verifyRefreshToken(refreshToken);
                 await SpaceJwtSecurity.invalidateRefreshToken(refreshToken);
             }
             // clear the cookie on the client
-            res.clearCookie('refreshToken', {path: '/'});
-            return res.json(formatAPI('Logged out!!'));
+            res.clearCookie("refreshToken", {
+                httpOnly: true,
+                secure:   process.env.NODE_ENV === "production",
+                sameSite: "none",       // <— required for cross-site cookies
+            });
+            return res.status(204).json(formatAPI('Logged out!!'));
         } catch (err) {
             console.error(err);
             ServerLogger.error(err);
@@ -41,7 +48,8 @@ class CustomerController {
                 userType
             );
             // Set the refresh token cookie
-            res.cookie('refreshToken', data?.data?.refreshToken, {
+            const refreshToken =data?.data?.refreshToken;
+            res.cookie('refreshToken', `Bearer ${refreshToken}`, {
                 httpOnly: true,
                 path: '/',
                 secure: process.env.NODE_ENV === 'production',
@@ -54,6 +62,25 @@ class CustomerController {
             console.error(err);
             ServerLogger.error(err);
             return res.status(500).json(formatError('Login failed.', err));
+        }
+    }
+
+    // Edit Own profile
+    async editProfile(req: Request, res: Response) {
+        try {
+            assertUserInRequest(req);
+            const customerData: Partial<CustomerInterface> = _.pick(req.body, [
+                'name',
+                'profileImage',
+            ]);
+            const data = await customerRepository.editProfile(
+                req.user._id,
+                customerData as CustomerInterface);
+            return res.status(data.status ?? 200).json(data);
+        } catch (error) {
+            ServerLogger.error(error);
+            console.error(error);
+            return res.status(400).json(formatError('Something went wrong!', error));
         }
     }
 
@@ -115,7 +142,7 @@ class CustomerController {
                     toObjectID(payload.id), payload.userType, payload.email, payload.uuid
                 );
             // replace cookie
-            res.cookie('refreshToken', newToken, {
+            res.cookie('refreshToken', `Bearer ${newToken}`, {
                 httpOnly: true,
                 path: '/',
                 secure: process.env.NODE_ENV === 'production',

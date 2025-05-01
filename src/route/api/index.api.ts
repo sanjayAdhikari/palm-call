@@ -1,10 +1,12 @@
 import chatApi from "@route/api/v1/chat/chat.api";
+import fileUploadApi from "@route/api/v1/tools/file_upload.api";
 import notificationApi from "@route/api/v1/tools/notification.api";
 import {Router} from "express";
 import {serverRunController} from "../server_run.api";
 import customerApi from "./v1/user/user.api";
 
 const apiList: { [key: string]: Router } = {
+    '/file': fileUploadApi,
     '/user': customerApi,
     '/notification': notificationApi,
     '/chat': chatApi,
