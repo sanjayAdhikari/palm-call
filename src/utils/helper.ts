@@ -8,7 +8,6 @@ import {formatAPI, formatError} from "./format.util";
 import validator from 'validator';
 import PasswordValidator from "password-validator";
 import {ApiInterface} from "../interface/api.interface";
-import generateQR from "./qr.util";
 import ServerLogger from "../middleware/server_logging.middleware";
 import * as randomstring from "randomstring";
 
@@ -327,25 +326,6 @@ export function createReferralCode(prefix: string = '', prefixLength: number = 3
     }
 
     return referralCodePart.toLowerCase();
-}
-
-export async function embedQrCodeWithUrl(qrContent: string, url?: string, key?: string, width?: number): Promise<ApiInterface<string>> {
-    try {
-        let qrContentData;
-        if (url) {
-            qrContentData = createQueryString(url, {
-                [key ?? 'token']: qrContent
-            }) ?? '';
-        } else {
-            qrContentData = qrContent;
-        }
-        const qrCode = await generateQR(qrContentData, width)
-        return formatAPI('', qrCode);
-    } catch (error) {
-        console.error(error);
-        ServerLogger.error(error);
-        return formatError('Error while generating QR code!');
-    }
 }
 
 export function truncateParagraph(paragraph: string = '', characterLengthNeeded: number = 10): string {

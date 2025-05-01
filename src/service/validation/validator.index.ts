@@ -1,7 +1,7 @@
 import {body, oneOf, param, query, ValidationChain} from "express-validator";
 import validator from "validator";
-import {checkExpressMiddlewareObjectID, dbEnum, toSanitizeObjectID} from "../../utils/db.util";
-import {capitalizeFirstLetter, getValidDomain} from "../../utils/helper";
+import {checkExpressMiddlewareObjectID, dbEnum, toSanitizeObjectID} from "@utils/db.util";
+import {capitalizeFirstLetter, getValidDomain} from "@utils/helper";
 
 
 export const idMultipleValid = function (fieldName: string, labelName?: string) {

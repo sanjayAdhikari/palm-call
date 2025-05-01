@@ -3,7 +3,6 @@ import {
     CustomerInterface,
     NotificationDocumentInterface,
     NotificationInterface,
-    RoleInterface
 } from "../../../interface/model";
 import {ApiInterface} from "../../../interface/api.interface";
 import {NotificationModel} from "../../model";
@@ -14,12 +13,12 @@ import ErrorStringConstant from "../../../config/error_string.config";
 import {ActiveStatusEnum} from "../../../interface/repository.interface";
 
 class NotificationRepository {
-    private user!: CustomerInterface<RoleInterface>;
+    private user!: CustomerInterface;
 
     private constructor() {
     }
 
-    static async init(user?: CustomerInterface<RoleInterface>): Promise<NotificationRepository> {
+    static async init(user?: CustomerInterface): Promise<NotificationRepository> {
         const instance: NotificationRepository = new NotificationRepository();
         if (user) {
             instance.user = user;

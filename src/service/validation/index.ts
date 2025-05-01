@@ -1,11 +1,7 @@
 import {param, query} from "express-validator";
-import {checkExpressMiddlewareObjectID, dbEnum, toSanitizeObjectID} from "../../utils/db.util";
-import {ActiveStatusEnum} from "../../interface/repository.interface";
-import {addressAllFieldValidation, addressAnyFieldValidation} from "./address.validation";
-
-import {spaceSettingsUpdateValidation} from "./space_settings.validation";
+import {ActiveStatusEnum} from "@interface/repository.interface";
+import {checkExpressMiddlewareObjectID, dbEnum, toSanitizeObjectID} from "@utils/db.util";
 import {idValid} from "./validator.index";
-import {profileEditValidation} from "./customer.validation";
 
 export const itemIDValidation = [
     param('itemID', 'Item ID is required').notEmpty()
@@ -38,13 +34,9 @@ export const readAllValidation = [
 
 
 const validationChain = {
-    spaceSettingsUpdateValidation,
     itemIDValidation,
     itemIDEditValidation,
     toggleValidation,
-    addressAllFieldValidation,
-    addressAnyFieldValidation,
-    profileEditValidation,
 }
 
 export default validationChain;

@@ -1,10 +1,8 @@
 import {Router} from "express";
 import {serverRunController} from "../server_run.api";
 import customerApi from "./v1/user/user.api";
-import fileUploadApi from "./v1/tools/file_upload.api";
 
 const apiList: {[key:string]: Router} = {
-    '/file': fileUploadApi,
     '/user': customerApi,
 };
 

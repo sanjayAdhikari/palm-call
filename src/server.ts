@@ -2,7 +2,6 @@ import express, {Application} from "express";
 import middleware from "./middleware";
 import routes from "./route";
 import addSwagger from "./swagger";
-import serveSwaggerJSON from "./swagger_serve";
 import {connectDB} from "./database/connection";
 
 async function createServer(): Promise<Application> {
@@ -20,7 +19,6 @@ async function createServer(): Promise<Application> {
 
     // run swagger docs
     addSwagger(app);
-    serveSwaggerJSON(app);
 
     console.log('server')
     // set route

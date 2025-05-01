@@ -1,130 +1,96 @@
-# evolv
-Palm Backend Boilerplate
-## Table of Contents
-
-- [Project Description](#project-description)
-- [Features](#features)
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-    - [Installation](#installation)
-    - [Configuration](#configuration)
-- [Usage](#usage)
-- [Project Structure](#project-structure)
-- [License](#license)
+# Palm Backend
 
 ## Project Description
 
-Project Description
-## Features
+Palm is a real-time customer support chat backend built with Node.js, Express, MongoDB, Redis, and TypeScript. It exposes REST and WebSocket (Socket.IO) APIs to support:
 
-List the key features of your application.
+- Real-time messaging between users and agents
+- Push notifications for offline users via Firebase Cloud Messaging (FCM)
+- WebRTC signaling (offer/answer exchange) for audio/video calls
 
-- Event Digitalizing
-- Quest Hunt & Reward Collection
-- NFT and TOTEM
+This service stores chat history and user credentials in MongoDB and uses Redis for caching frequently accessed data.
 
 ## Prerequisites
 
-Before you begin, ensure you have met the following prerequisites:
+Before you begin, ensure you have the following installed on your machine:
 
-- **Node.js and npm**: Make sure you have Node.js (version 20.3.0 or higher) and npm (version 9.6.7 or higher) installed on your system. You can download them from [Node.js Downloads](https://nodejs.org/).
-
-  You can verify the installation by running the following commands in your terminal:
-
-  ```bash
-  node -v
-  npm -v
+- **Node.js** v20.3.0 or higher
+- **npm** v9.6.7 or higher (bundled with Node.js)
+- **MongoDB** v6.0 or later (local or remote)
+- **Redis** v7.x or later (local or remote)
+- A **Firebase** project with Cloud Messaging enabled
 
 ## Getting Started
-Follow these steps to get this application up and running.
 
-### Installation
+Clone the repository and install dependencies:
 
 ```bash
-#### Clone the repository
-git clone https://github.com/EvolvNFT/evolv-backend.git
-
-# Change Directory: Navigate to the project directory:
-cd evolv-backend
-
-# Install Dependencies: Use npm to install the project dependencies:
+git clone git@github.com:sanjayAdhikari/palm-call.git
+cd palm-call
 npm install
 ```
 
 ### Configuration
-```
-cp .env.dev .env
-```
-Edit the .env file with your configuration values.
 
+1. Copy the example environment file and update values:
+   ```bash
+   cp .env.example .env
+   ```
+2. Open `.env` and set:
+    - `MONGODB_URI` (e.g. `mongodb://localhost:27017/palm`)
+    - `REDIS_URL` (e.g. `redis://localhost:6379`)
+    - `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`
+    - any other application secrets or ports
 
-### Seed Database
-```
+### Seed Database (Optional)
+
+If you need initial data (e.g., admin user), run:
+```bash
 npm run seed
 ```
-This command will build the typescript and run seed configuration
 
-## Usage
-```bash
-# Start the Application: To start your Node.js application, run the following command:
-npm start
+### Running the Backend
 
+- **Development** (with hot-reloading):
+  ```bash
+  npm run dev
+  ```
+- **Production**:
+  ```bash
+  npm run build
+  npm start
+  ```
 
-# Testing: To run tests (if available), use the following command:
-npm test
-
-#Development: During development, you can use the following command to start the application with hot-reloading for TypeScript files:
-npm run run
-```
+The server will start on the port defined in your `.env` (default: `3000`).
 
 ## Project Structure
-Here's an overview of the project structure:
-```
-├── evolv/
-│   ├── src/
-│   │   ├── app.ts
-│   │   ├── server.ts
-│   │   ├── config/
-│   │   │   ├── constant.ts
-│   │   │   ├── error_string.config.ts
-│   │   │   ├── route_url.config.ts
-│   │   │   └── seed/
-│   │   │       └── admin.seed.config.ts
-│   │   ├── controller/
-│   │   ├── database/
-│   │   │   ├── connection.ts
-│   │   │   ├── index.ts
-│   │   │   ├── model/
-│   │   │   └── repository/
-│   │   ├── interface/
-│   │   ├── middleware/
-│   │   │   ├── access.middleware.ts
-│   │   │   ├── client_logging.middleware.ts
-│   │   │   ├── index.ts
-│   │   │   ├── parseValidation.middleware.ts
-│   │   │   └── passport.middleware.ts
-│   │   ├── route/
-│   │   ├── service/
-│   │   │   ├── seed
-│   │   │   ├── api_service
-│   │   │   ├── validation
-│   │   └── utils/
-│   │   │   ├── jwt
-│   │   │   ├── helper.ts
-│   ├── package.json
-│   ├── .env.dev
-│   ├── tsconfig.json
-│   ├── Dockerfile
-│   ├── README.md
-│   ├── Makefile
-│   ├── docker-compose.production.yml
 
+```text
+palm-call/
+├── src/
+│   ├── app.ts           # App initialization and middleware setup
+│   ├── server.ts        # HTTP & Socket.IO server bootstrap
+│   ├── config/          # Environment constants and route URLs
+│   ├── controller/      # Express route handlers
+│   ├── database/        # MongoDB connection and models
+│   │   ├── connection.ts
+│   │   ├── model/
+│   │   └── repository/
+│   ├── interface/       # TypeScript interfaces and types
+│   ├── middleware/      # Authentication, validation, logging
+│   ├── route/           # Route definitions
+│   ├── service/         # Business logic and external integrations
+│   └── utils/           # Helpers (e.g., JWT, error formatting)
+├── .env.dev             # Example environment variables
+├── .gitignore
+├── package.json
+├── tsconfig.json
+├── Dockerfile
+├── docker-compose.yml   # Redis & MongoDB for local development
+└── README.md            # This file
 ```
+
 ## License
 
-This software is closed-source and proprietary. All rights to the software and its source code are reserved by Palm Pte Ltd. Unauthorized use, distribution, or copying of this software is strictly prohibited.
-
-For licensing inquiries or other questions, please contact Palm Pte Ltd. at [info@evolv.arts].
-
-
+This software is proprietary to Palm Pte Ltd. Unauthorized use, distribution, or copying of this code is prohibited.
 

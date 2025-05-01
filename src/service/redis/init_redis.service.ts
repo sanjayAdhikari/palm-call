@@ -7,7 +7,7 @@ import CustomEnvironmentVariables from "../../config/custom-environment-variable
 import config from "../../config";
 
 const getImplicitKey = (key: string) => {
-    const prefixEnv = config<string>(CustomEnvironmentVariables.API_GATEWAY_HOST);
+    const prefixEnv = config<string>(CustomEnvironmentVariables.NODE_ENV);
     return `${prefixEnv}_${key}`
 }
 

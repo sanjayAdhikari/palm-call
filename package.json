@@ -7,8 +7,7 @@
     "test": "mocha --check-leaks -r ts-node/register -r tsconfig-paths/register \"src/test/**/*.spec.ts\" --timeout 10000",
     "dev": "NODE_ENV=development && set NODE_PATH=./src && ts-node-dev --require tsconfig-paths/register --respawn --transpile-only src/index.ts",
     "build": "tsc -p .",
-    "seed:dev": "npm run build && NODE_ENV=development node -r tsconfig-paths/register build/service/seed/system_seed_runner.js && rm -r build",
-    "seed:production": "npm run build && NODE_ENV=production node -r tsconfig-paths/register build/service/seed/system_seed_runner.js && rm -r build"
+    "seed": "npm run build && node -r tsconfig-paths/register build/service/seed/system_seed_runner.js && rm -r build"
   },
   "repository": {
     "type": "git",
