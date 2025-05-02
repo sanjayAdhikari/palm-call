@@ -3,10 +3,10 @@ import {CustomerInterface} from "@interface/model";
 import {toObjectID} from "@utils/db.util";
 import passport from "passport";
 import {ExtractJwt, Strategy as JwtStrategy, StrategyOptions} from "passport-jwt";
-import config from "../config";
-import environmentVariable from "../config/custom-environment-variables";
-import {customerRepository} from "../database/repository";
-import CacheRepository from "../service/redis/repository.cache";
+import config from "@config/index";
+import environmentVariable from "@config/custom-environment-variables";
+import {customerRepository} from "@database/repository";
+import CacheRepository from "@service/redis/repository.cache";
 import ServerLogger from "./server_logging.middleware";
 
 const opts: StrategyOptions = {

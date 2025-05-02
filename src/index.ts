@@ -1,3 +1,6 @@
+if (!process.env.TS_NODE_DEV) {
+    require('module-alias/register');
+}
 import cluster, {Worker} from 'cluster';
 import os from 'os';
 import {debugLog} from './utils/debug.util';
