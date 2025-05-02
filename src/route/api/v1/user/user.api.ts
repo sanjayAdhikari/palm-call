@@ -41,6 +41,13 @@ const initializeCustomerApi: () => Router = () => {
             ],
             parseValidation,
             customerController.editProfile.bind(customerController))
+        .post(RouteURL.customer.save_fcm,
+            authentication,
+            [
+                stringValid("token"),
+            ],
+            parseValidation,
+            customerController.saveFcm.bind(customerController))
         .get(RouteURL.customer.current_profile,
             authentication,
             defaultLimiter,

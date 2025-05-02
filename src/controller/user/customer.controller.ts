@@ -2,6 +2,7 @@ import {assertUserInRequest} from '@interface/api.interface';
 import {UserTypeEnum} from '@interface/generic.enum';
 import {CustomerInterface} from "@interface/model";
 import ServerLogger from '@middleware/server_logging.middleware';
+import {CustomerModel} from "@model/index";
 import {customerRepository} from "@repository/index";
 import {toObjectID} from '@utils/db.util';
 import {formatAPI, formatError} from '@utils/format.util';
@@ -17,9 +18,17 @@ class CustomerController {
             const refreshToken = req.cookies['refreshToken'];
             console.log('refreshToken', refreshToken)
             if (refreshToken) {
-                await SpaceJwtSecurity.verifyRefreshToken(refreshToken);
+                const payload = await SpaceJwtSecurity.verifyRefreshToken(refreshToken);
+                if(payload){
+                    await CustomerModel.findByIdAndUpdate(payload.id, {
+                        $push: {
+                            'fcmToken.uuid': payload.uuid,
+                        }
+                    })
+                }
                 await SpaceJwtSecurity.invalidateRefreshToken(refreshToken);
             }
+
             // clear the cookie on the client
             res.clearCookie("refreshToken", {
                 httpOnly: true,
@@ -76,6 +85,25 @@ class CustomerController {
             const data = await customerRepository.editProfile(
                 req.user._id,
                 customerData as CustomerInterface);
+            return res.status(data.status ?? 200).json(data);
+        } catch (error) {
+            ServerLogger.error(error);
+            console.error(error);
+            return res.status(400).json(formatError('Something went wrong!', error));
+        }
+    }
+
+    // Save FCM
+    async saveFcm(req: Request, res: Response) {
+        try {
+            assertUserInRequest(req);
+            const {token} = req.body;
+            const payload = await SpaceJwtSecurity.verifyAccessToken(req.header("Authorization")!);
+            const data = await customerRepository.saveFcm(
+                req.user._id,
+                token,
+                payload.uuid,
+            );
             return res.status(data.status ?? 200).json(data);
         } catch (error) {
             ServerLogger.error(error);

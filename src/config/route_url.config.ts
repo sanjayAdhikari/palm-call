@@ -12,6 +12,7 @@ const RouteURL: any = {
         customer_detail: '/detail/:customerID',
         refresh_token: '/refresh-access-token',
         user_list: '/',
+        save_fcm: '/fcm',
     },
     notification: {
         read_all: '/',

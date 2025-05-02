@@ -20,7 +20,8 @@ const CustomerSchema: Schema = new Schema<CustomerInterface>(
             default: UserTypeEnum.USER
         },
         fcmToken: [{
-           uuid: MongooseString,
+            _id: false, // disable automatic _id
+            uuid: MongooseString,
            token: MongooseString,
         }],
 

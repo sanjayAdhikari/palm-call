@@ -57,6 +57,40 @@ class CustomerRepository {
         }
     }
 
+    async saveFcm(userID: ObjectID, token: string, uuid: string): Promise<ApiInterface<ObjectID>> {
+        try {
+            console.log('FCM TOKEN try to update for', userID, token, uuid)
+            // update
+            const existedItem: CustomerInterface | null = await CustomerModel.findOne({
+                _id: userID,
+                isDeleted: false,
+            }).lean();
+            if (!existedItem) {
+                return formatError('Profile does not exist anymore.');
+            }
+            if (!existedItem.isActive ?? true) {
+                return formatError('Archived profile cannot be modified.');
+            }
+            const cacheRepo = new CacheRepository();
+
+            // check for onBoarding
+            await Promise.all([
+                CustomerModel.findByIdAndUpdate(userID, {
+                    $addToSet: {
+                        fcmToken: { token, uuid }
+                    }
+                }),
+                cacheRepo.setSpaceUser(userID, null),
+            ]);
+
+            return formatAPI('FCM is successfully registered', userID);
+        } catch (error) {
+            ServerLogger.error(error);
+            console.error(error);
+            return formatError(`Error while registering the FCM token.`);
+        }
+    }
+
     // Handle login or registration with email and password
     async loginRegister(
         email: string,

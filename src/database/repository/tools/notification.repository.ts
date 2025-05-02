@@ -50,8 +50,7 @@ export class NotificationRepository {
 
             const userDoc = await CustomerModel.findById(recipient).select('fcmToken').lean();
             const tokens = (userDoc?.fcmToken || []).map(t => t.token);
-            await FCMService.send(doc.toObject(), tokens.length ? tokens : undefined);
-
+            const fcmResponse = await FCMService.send(doc.toObject(), tokens.length ? tokens : undefined);
             return formatAPI('', doc.toObject());
         } catch (err: any) {
             ServerLogger.error(err);

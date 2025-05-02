@@ -18,37 +18,42 @@ export default class FCMService {
         notification: NotificationInterface,
         tokens?: string | string[]
     ): Promise<admin.messaging.BatchResponse | string> {
-        const payload = {
-            notification: {
-                title: notification.title,
-                body: notification.body,
-                imageUrl: notification.photo,
-            },
-            data: {
-                link: notification.link,
-                photo: notification.photo || '',
-                category: notification.category,
-                payload: JSON.stringify(notification.payload),
-            },
-        };
+        try {
+            console.log("notification.photo", notification)
+            const notificationPayload: admin.messaging.NotificationMessagePayload = {
+                title: notification.title || "",
+                body: notification.body || "",
+            };
 
-        if (tokens === undefined) {
-            return admin.messaging().send({ ...payload, topic: 'all' });
+
+            const payload = {
+                notification: notificationPayload,
+            };
+
+            if (tokens === undefined) {
+                return admin.messaging().send({ ...payload, topic: 'all' });
+            }
+
+            const list = Array.isArray(tokens) ? tokens : [tokens];
+            if (!list.length) {
+                return { successCount: 0, failureCount: 0, responses: [] } as admin.messaging.BatchResponse;
+            }
+
+            if (list.length === 1) {
+                return admin.messaging().send({ ...payload, token: list[0] }).then(id => ({
+                    successCount: 1,
+                    failureCount: 0,
+                    responses: [{ success: true, messageId: id }],
+                } as admin.messaging.BatchResponse));
+            }
+
+            const response = await admin.messaging().sendEachForMulticast({ ...payload, tokens: list });
+            response.responses.map(each => console.log(each.error, each.success, each.messageId))
+            return response;
         }
-
-        const list = Array.isArray(tokens) ? tokens : [tokens];
-        if (!list.length) {
+        catch (error) {
+            console.error("Error while dispatching notification", error);
             return { successCount: 0, failureCount: 0, responses: [] } as admin.messaging.BatchResponse;
         }
-
-        if (list.length === 1) {
-            return admin.messaging().send({ ...payload, token: list[0] }).then(id => ({
-                successCount: 1,
-                failureCount: 0,
-                responses: [{ success: true, messageId: id }],
-            } as admin.messaging.BatchResponse));
-        }
-
-        return admin.messaging().sendEachForMulticast({ ...payload, tokens: list });
     }
 }
