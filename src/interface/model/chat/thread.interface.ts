@@ -7,7 +7,6 @@ import {ObjectID} from "../../generic.type";
 export enum ChatStatusEnum {
     "OPEN" = "OPEN",
     "COMPLETED" = "COMPLETED",
-
 }
 export interface ThreadInterface extends UserTimestampSchemaInterface {
     _id: ObjectID;

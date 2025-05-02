@@ -7,15 +7,25 @@ import { ChatRepository } from '@repository/index';
 import { toObjectID } from '@utils/db.util';
 
 class ChatController {
-    async getThread(req: Request, res: Response) {
+    async getThreadByParticipantID(req: Request, res: Response) {
         try {
             assertUserInRequest(req);
-            const participantId = req.query.participant?.toString();
-            if (!participantId) {
-                return res.status(400).json(formatError('participant is required'));
-            }
+            const {participantID} = req.params;
             const repo = new ChatRepository(req.user as CustomerInterface);
-            const result = await repo.getThread(toObjectID(participantId));
+            const result = await repo.getThreadByParticipantID(toObjectID(participantID));
+            return res.status(result.status).json(result);
+        } catch (error) {
+            ServerLogger.error('Error fetching thread', error);
+            return res.status(400).json(formatError('Error fetching thread'));
+        }
+    }
+
+ async getThread(req: Request, res: Response) {
+        try {
+            assertUserInRequest(req);
+            const {threadID} = req.params;
+            const repo = new ChatRepository(req.user as CustomerInterface);
+            const result = await repo.getThread(toObjectID(threadID));
             return res.status(result.status).json(result);
         } catch (error) {
             ServerLogger.error('Error fetching thread', error);
@@ -56,12 +66,12 @@ class ChatController {
     async createMessage(req: Request, res: Response) {
         try {
             assertUserInRequest(req);
-            const { threadId, text } = req.body;
-            if (!threadId || !text) {
-                return res.status(400).json(formatError('threadId and text are required'));
+            const { threadID, message } = req.body;
+            if (!threadID || !message) {
+                return res.status(400).json(formatError('threadID and message are required'));
             }
             const repo = new ChatRepository(req.user as CustomerInterface);
-            const result = await repo.createMessage(toObjectID(threadId), text);
+            const result = await repo.createMessage(toObjectID(threadID), message);
             return res.status(result.status).json(result);
         } catch (error) {
             ServerLogger.error('Error creating message', error);
@@ -72,14 +82,14 @@ class ChatController {
     async getMessages(req: Request, res: Response) {
         try {
             assertUserInRequest(req);
-            const threadId = req.query.threadId?.toString();
+            const {threadID} = req.params;
             const page = req.query.page ? parseInt(req.query.page.toString(), 10) : undefined;
             const pageSize = req.query.pageSize ? parseInt(req.query.pageSize.toString(), 10) : undefined;
-            if (!threadId) {
-                return res.status(400).json(formatError('threadId is required'));
+            if (!threadID) {
+                return res.status(400).json(formatError('threadID is required'));
             }
             const repo = new ChatRepository(req.user as CustomerInterface);
-            const result = await repo.getMessages(toObjectID(threadId), page, pageSize);
+            const result = await repo.getMessages(toObjectID(threadID), page, pageSize);
             return res.status(result.status).json(result);
         } catch (error) {
             ServerLogger.error('Error fetching messages', error);

@@ -14,7 +14,7 @@ export default class ChatRepository {
         this.user = user;
     }
 
-    async getThread(
+    async getThreadByParticipantID(
         participant: CustomerInterface['_id']
     ): Promise<ApiInterface<ThreadInterface>> {
         try {
@@ -41,11 +41,39 @@ export default class ChatRepository {
         }
     }
 
+
+    async getThread(
+        threadID: ThreadInterface['_id']
+    ): Promise<ApiInterface<ThreadInterface>> {
+        try {
+            const filter: FilterQuery<ThreadInterface> = {
+                participants: this.user._id,
+                _id: threadID,
+                isDeleted: false,
+            };
+            let thread: ThreadInterface | null = await ThreadModel.findOne(filter).populate({
+                path: "participants",
+                select: 'name profileImage _id',
+                match: {
+                    isDeleted: false,
+                }
+            }).lean();
+            if (!thread) {
+                return formatError("No such Thread exists.")
+            }
+            return formatAPI('', thread);
+        } catch (err: any) {
+            ServerLogger.error(err);
+            return formatError(ErrorStringConstant.UNKNOWN_ERROR);
+        }
+    }
+
     async listThreads(
         page?: number,
         pageSize?: number
     ): Promise<ApiInterface<PaginateResult<ThreadInterface>>> {
         try {
+            const myRole = this.user.userType;
             const filter: FilterQuery<ThreadInterface> = {
                 participants: this.user._id,
                 isDeleted: false,
@@ -54,7 +82,19 @@ export default class ChatRepository {
                 ThreadModel,
                 filter,
                 'participants status lastMessage lastMessageAt',
-                ['lastMessage'],
+                [{
+                    path: "participants",
+                    select: 'name profileImage _id',
+                    match: {
+                        isDeleted: false,
+                    }
+                }, {
+                    path: "lastMessage",
+                    select: 'messages systemGenerated',
+                    match: {
+                        isDeleted: false,
+                    }
+                }],
                 false,
                 page,
                 pageSize
@@ -161,7 +201,13 @@ export default class ChatRepository {
                 MessageModel,
                 filter,
                 'createdAt sender message attachments systemGenerated hasRead',
-                [],
+                [{
+                    path: "sender",
+                    select: 'name profileImage _id',
+                    match: {
+                        isDeleted: false,
+                    }
+                }],
                 false,
                 page,
                 pageSize

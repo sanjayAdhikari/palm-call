@@ -13,10 +13,10 @@ export enum FunctionActionEnum {
     DELETE = 'delete',
 }
 
-// src/interface/generic.enum.ts
 export enum SocketEventEnum {
     INIT = 'init',
-    JOIN = 'join',
+    JOIN_THREAD = 'thread:join',
+    LEAVE_THREAD = 'thread:leave',
     MESSAGE = 'message',
     START_TYPING = 'typing:start',
     STOP_TYPING = 'typing:stop',
@@ -29,4 +29,5 @@ export enum SocketEventEnum {
     ONLINE_USERS = 'online_users',
     ERROR = 'error',
     DISCONNECT = 'disconnect',
+    CONNECT = 'connect',
 }

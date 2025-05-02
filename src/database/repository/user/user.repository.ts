@@ -135,7 +135,7 @@ class CustomerRepository {
         const result = await paginateModel<CustomerDocumentInterface>(
             CustomerModel,
             filter,
-            'name profileImage',
+            'name profileImage email',
             [],
             true,
             page,

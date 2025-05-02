@@ -2,7 +2,7 @@ import RouteURL from "@config/route_url.config";
 import {chatController} from "@controller/index";
 import {authentication} from "@middleware/access.middleware";
 import parseValidation from "@middleware/parseValidation.middleware";
-import {idValidParam} from "@service/validation/validator.index";
+import {idValid, idValidParam, stringValid} from "@service/validation/validator.index";
 import {Router} from "express";
 import {query} from "express-validator";
 
@@ -11,8 +11,21 @@ export const initializeChatApi = (): Router => {
 
     router
         .get(
+            RouteURL.chat.read_thread_by_participant,
+            authentication,
+            [
+                idValidParam("participantID", "participant")
+            ],
+            parseValidation,
+            chatController.getThreadByParticipantID.bind(chatController)
+        )
+        .get(
             RouteURL.chat.read_thread,
             authentication,
+            [
+                idValidParam("threadID", "participant")
+            ],
+            parseValidation,
             chatController.getThread.bind(chatController)
         )
         .get(
@@ -32,7 +45,7 @@ export const initializeChatApi = (): Router => {
             parseValidation,
             chatController.deleteThread.bind(chatController)
         )
-        .post(
+        .get(
             RouteURL.chat.messages,
             authentication,
             [
@@ -44,8 +57,13 @@ export const initializeChatApi = (): Router => {
             chatController.getMessages.bind(chatController)
         )
         .post(
-            RouteURL.chat.messages,
+            RouteURL.chat.send_messages,
             authentication,
+            [
+                idValid('threadID', 'thread'),
+                stringValid('message'),
+            ],
+            parseValidation,
             chatController.createMessage.bind(chatController)
         );
 

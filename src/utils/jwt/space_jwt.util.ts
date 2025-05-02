@@ -13,7 +13,8 @@ import {CustomerInterface, UserTypeEnum} from "@interface/model";
 import {ApiInterface} from "@interface/api.interface";
 import {formatAPI, formatError} from "../format.util";
 
-export const REFRESH_TOKEN_TTL =  2 * 24 * 60 * 60; // 2 DAYS
+const expiresIn = config<number>(environmentVariable.REFRESH_TOKEN_EXPIRY_DAY);
+export const REFRESH_TOKEN_TTL =  expiresIn * 24 * 60 * 60; // 2 DAYS
 
 class SpaceJwtSecurity {
     static getTokenKeyName(tenantID: string, uuid?: string) {
@@ -49,8 +50,6 @@ class SpaceJwtSecurity {
 
     static verifyAccessToken(authHeader: string): Promise<JwtPayload> {
         return new Promise((resolve, reject) => {
-            // if (!req.headers['authorization']) return next()
-            // const authHeader = req.headers['authorization']
             const bearerToken = authHeader.split(' ')
             const token = bearerToken[1];
             const secret = config<string>(environmentVariable.ACCESS_TOKEN_SECRET);
@@ -59,9 +58,10 @@ class SpaceJwtSecurity {
                 if (err || !payload?.id || !payload?.uuid) {
                     return reject('Invalid Token. Unauthorized Access');
                 }
-                const cache = await CacheClient.init();
-                const value = await cache.get(
-                    SpaceJwtSecurity.getTokenKeyName(`${payload.id.toString()}-${payload.uuid}`)
+                const cache = new CacheRepository();
+                const value = await cache.getRefreshToken(
+                    payload.id.toString(),
+                    payload.uuid,
                 );
                 if (value)
                     return resolve(payload);
@@ -201,8 +201,7 @@ class SpaceJwtSecurity {
                 uuid: uuid as string, // Generate a UUID and add it to the JWT payload
             };
             const secret = config<string>(environmentVariable.REFRESH_TOKEN_SECRET);
-            const expiresIn = config<number>(environmentVariable.REFRESH_TOKEN_EXPIRY_DAY);
-            const token = this.signToken(secret, JWTPayload, expiresIn * 60 * 60 * 24);
+            const token = this.signToken(secret, JWTPayload, REFRESH_TOKEN_TTL);
             const cache = new CacheRepository();
             await cache.setRefreshToken(JWTPayload.id!, JWTPayload.uuid!, token, REFRESH_TOKEN_TTL);
             return token;
@@ -213,24 +212,6 @@ class SpaceJwtSecurity {
         }
     }
 
-    static signOtpToken(id: CustomerInterface["_id"], email: string, hash: string, userType: UserTypeEnum, uuid?: string) {
-        try {
-            const secret = config<string>(environmentVariable.ACCESS_TOKEN_SECRET);
-            const otpJwt: Partial<OtpJwtPayload> = {
-                id: id.toString(),
-                email,
-                hash,
-                userType,
-            }
-            if (uuid) otpJwt.uuid = uuid?.toString();
-
-            return SpaceJwtSecurity.signToken(secret, otpJwt, 10 * 60);
-        } catch (error) {
-            console.log('error', error);
-            ServerLogger.error(error);
-            return '';
-        }
-    }
 
     static verifyOtpToken(token: string): Promise<OtpJwtPayload> {
         return new Promise((resolve, reject) => {
@@ -252,10 +233,8 @@ class SpaceJwtSecurity {
         const iat: number = Math.floor(Date.now() / 1000);
         const JWTPayload: Partial<JwtPayload> = payload;
         JWTPayload.iat = iat;
-        const jwtOptions: any = {}
         if (expiresInSeconds) {
             JWTPayload.exp = Math.floor(Date.now() / 1000) + (expiresInSeconds);
-            jwtOptions.expiresIn = 30;
         }
 
         return jwt.sign(JWTPayload, secret);

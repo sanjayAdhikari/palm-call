@@ -25,7 +25,8 @@ export default class SocketLogic {
             socket.data.jwt = jwtPayload;
             socket.data.user = userData as CustomerInterface;
             return next();
-        } catch {
+        } catch (error: any) {
+            console.error("Error in middlewareImplementation socket", error)
             return next(new Error('Auth error'));
         }
     }
@@ -43,7 +44,7 @@ export default class SocketLogic {
 
         const chatRepo = new ChatRepository(user);
 
-        socket.on(SocketEventEnum.JOIN, async ({ threadId }: { threadId: string }) => {
+        socket.on(SocketEventEnum.JOIN_THREAD, async ({ threadId }: { threadId: string }) => {
             try {
                 const id = toObjectID(threadId);
                 const messagesRes = await chatRepo.getMessages(id, 0, 1) as ApiInterface<any>;
@@ -52,9 +53,19 @@ export default class SocketLogic {
                     return;
                 }
                 socket.join(threadId);
+                console.log(user._id, ' join thread', threadId)
             } catch (err: any) {
                 ServerLogger.error(err);
                 socket.emit('error', { message: 'Unable to join thread' });
+            }
+        });
+        socket.on(SocketEventEnum.LEAVE_THREAD, async ({threadId}: { threadId: string }) => {
+            try {
+                console.log(user._id, ' left thread', threadId)
+                socket.leave(threadId);
+            } catch (err: any) {
+                ServerLogger.error(err);
+                socket.emit('error', {message: 'Unable to join thread'});
             }
         });
 
@@ -63,10 +74,10 @@ export default class SocketLogic {
         socket.on(SocketEventEnum.GET_ONLINE_USERS, async ({ role }: { role: 'users' | 'agents' }) => {
             try {
                 // Fetch all Socket instances in the given role-room
-                const sockets = await socket.nsp.in(role).fetchSockets();
+                const roleSockets = await socket.nsp.in(notifyRoom).fetchSockets();
                 // Extract the user IDs attached to each socket
-                const userIds = sockets.map(s => (s.data.user as CustomerInterface)._id.toString());
-                socket.emit(SocketEventEnum.ONLINE_USERS, { role, userIds });
+                const userIds = roleSockets.map(s => (s.data.user as CustomerInterface)._id.toString());
+                socket.emit(SocketEventEnum.ONLINE_USERS, { role: notifyRoom, userIds });
             } catch (err: any) {
                 ServerLogger.error(err);
                 socket.emit('error', { message: 'Could not fetch online users' });
@@ -82,7 +93,6 @@ export default class SocketLogic {
                     otherParticipants: string[];
                     thread: ThreadInterface;
                 }> = await chatRepo.createMessage(id, text);
-
                 if (!msgRes.success) {
                     socket.emit(SocketEventEnum.ERROR, { message: msgRes.message });
                     return;
@@ -117,12 +127,16 @@ export default class SocketLogic {
             }
         });
 
-        socket.on(SocketEventEnum.START_TYPING, ({ threadId }: { threadId: string }) =>
-            socket.to(threadId).emit(SocketEventEnum.START_TYPING, { from: user._id })
+        socket.on(SocketEventEnum.START_TYPING, ({ threadId }: { threadId: string }) => {
+                console.log(user._id, " started typing in ", threadId)
+                socket.to(threadId).emit(SocketEventEnum.START_TYPING, {from: user._id})
+            }
         );
 
-        socket.on(SocketEventEnum.STOP_TYPING, ({ threadId }: { threadId: string }) =>
-            socket.to(threadId).emit(SocketEventEnum.STOP_TYPING, { from: user._id })
+        socket.on(SocketEventEnum.STOP_TYPING, ({ threadId }: { threadId: string }) => {
+            console.log(user._id, " stopped typing in ", threadId)
+            socket.to(threadId).emit(SocketEventEnum.STOP_TYPING, {from: user._id})
+            }
         );
 
         // socket.on('read', async ({ threadId }: { threadId: string }) => {

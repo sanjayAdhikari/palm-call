@@ -19,10 +19,12 @@ const RouteURL: any = {
         delete: '/delete/:notificationID',
     },
     chat: {
-        read_thread: '/thread/:participantID',
-        threads: '/',
-        delete_thread: '/thread/:threadID',
+        read_thread_by_participant: '/thread/participant/:participantID',
+        read_thread: '/thread/detail/:threadID',
+        threads: '/threads',
+        delete_thread: '/thread/delete/:threadID',
         messages: '/messages/:threadID',
+        send_messages: '/messages',
     },
 }
 
