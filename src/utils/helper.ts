@@ -1,15 +1,13 @@
 /* eslint-disable no-param-reassign,eqeqeq */
 import moment from 'moment-timezone';
 import {URL} from "node:url";
-import {AppConstant} from "../config/constant";
-import {DateString} from "../interface/generic.type";
-import {CoordinateObjectInterface,} from "../interface/generic.interface";
-import {formatAPI, formatError} from "./format.util";
-import validator from 'validator';
 import PasswordValidator from "password-validator";
-import {ApiInterface} from "../interface/api.interface";
+import validator from 'validator';
+import {AppConstant} from "../config/constant";
+import {CoordinateObjectInterface,} from "../interface/generic.interface";
+import {DateString} from "../interface/generic.type";
 import ServerLogger from "../middleware/server_logging.middleware";
-import * as randomstring from "randomstring";
+import {formatError} from "./format.util";
 
 // Helper function to sanitize the domain name
 export const sanitizeDomainName = (name: string): string => {
@@ -123,7 +121,11 @@ export const checkCoordinates = (latitude?: CoordinateObjectInterface["latitude"
 
 export const checkCoordinatesArray = (coordinate?: number[]) => coordinate ? checkCoordinates(coordinate[1], coordinate[0]) : false;
 
-export const getName = (customerName?: { first: string, middle?: string, last: string }, fallback: string = 'N/A'): string => {
+export const getName = (customerName?: {
+    first: string,
+    middle?: string,
+    last: string
+}, fallback: string = 'N/A'): string => {
     let name = '';
     const firstName = customerName?.first;
     const middleName = customerName?.middle;
@@ -308,29 +310,6 @@ export function createQueryString(baseUrl: string, params: Record<string, any>):
     } catch (error) {
         return null
     }
-}
-
-export function createReferralCode(prefix: string = '', prefixLength: number = 3, referralCodeLength: number = 7) {
-    // Calculate the length of the referral code part
-    const referralCodePartLength: number = referralCodeLength - Math.min(prefix.length, prefixLength);
-
-    // Generate random string for referral code part
-    let referralCodePart: string = randomstring.generate({
-        length: referralCodePartLength,
-        charset: 'alphanumeric',
-    });
-
-    // Add prefix if specified
-    if (prefix && prefix.length > 0) {
-        referralCodePart = prefix + referralCodePart;
-    }
-
-    return referralCodePart.toLowerCase();
-}
-
-export function truncateParagraph(paragraph: string = '', characterLengthNeeded: number = 10): string {
-    const maxIndex = Math.max(paragraph.length, characterLengthNeeded);
-    return paragraph.substring(0, maxIndex); // first 20 character
 }
 
 export const getValidDomain = (value: any): string | null => {

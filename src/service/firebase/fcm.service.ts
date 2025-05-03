@@ -19,7 +19,6 @@ export default class FCMService {
         tokens?: string | string[]
     ): Promise<admin.messaging.BatchResponse | string> {
         try {
-            console.log("notification.photo", notification)
             const notificationPayload: admin.messaging.NotificationMessagePayload = {
                 title: notification.title || "",
                 body: notification.body || "",

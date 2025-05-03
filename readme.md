@@ -1,5 +1,8 @@
 # Palm Backend
 
+## Technical Documentations
+https://docs.google.com/document/d/1YjHWyv0LyxX8PFLTPvY4yytJAzz36RrXCosyDe1LXB8/edit?usp=sharing
+
 ## Project Description
 
 Palm is a real-time customer support chat backend built with Node.js, Express, MongoDB, Redis, and TypeScript. It exposes REST and WebSocket (Socket.IO) APIs to support:
@@ -32,7 +35,7 @@ npm install
 
 ### Configuration
 
-1. Copy your firebase admin-sdk json file under; filename should be matched 
+1. Copy your firebase admin-sdk json file as same filename as below: 
    ```bash
    src/config/firebase-adminsdk.json
    
@@ -65,7 +68,7 @@ npm run seed
   npm start
   ```
 
-The server will start on the port defined in your `.env` (default: `3000`).
+The server will start on the port defined in your `.env` (default: `5000`).
 
 ## Project Structure
 
@@ -85,7 +88,9 @@ palm-call/
 │   ├── route/           # Route definitions
 │   ├── service/         # Business logic and external integrations
 │   └── utils/           # Helpers (e.g., JWT, error formatting)
-├── .env.dev             # Example environment variables
+├── .env.example             # Example environment variables
+├── .env                     # Production Environment variables
+├── .env.dev             # Development environment variables
 ├── .gitignore
 ├── package.json
 ├── tsconfig.json
@@ -96,5 +101,5 @@ palm-call/
 
 ## License
 
-This software is proprietary to Palm Pte Ltd. Unauthorized use, distribution, or copying of this code is prohibited.
+MIT License
 

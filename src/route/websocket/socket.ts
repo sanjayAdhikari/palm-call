@@ -109,7 +109,6 @@ export default class SocketLogic {
                     for (const otherIdStr of (otherParticipants ?? [])) {
                         const room = socket.nsp.adapter.rooms.get(otherIdStr);
                         const isOnline = room ? room.size > 0 : false;
-                        console.log('isOnline', isOnline, otherIdStr)
                         if (!isOnline) {
                             await new NotificationRepository(socket.data.user)
                                 .sendToUser(
@@ -131,13 +130,13 @@ export default class SocketLogic {
             });
 
             socket.on(SocketEventEnum.START_TYPING, ({threadId}: { threadId: string }) => {
-                    console.log(user._id, " started typing in ", threadId)
+                    // console.log(user._id, " started typing in ", threadId)
                     socket.to(threadId).emit(SocketEventEnum.START_TYPING, {from: user._id})
                 }
             );
 
             socket.on(SocketEventEnum.STOP_TYPING, ({threadId}: { threadId: string }) => {
-                    console.log(user._id, " stopped typing in ", threadId)
+                    // console.log(user._id, " stopped typing in ", threadId)
                     socket.to(threadId).emit(SocketEventEnum.STOP_TYPING, {from: user._id})
                 }
             );
