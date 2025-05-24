@@ -228,7 +228,7 @@ export default class SocketLogic {
 
                 const producer = await transport.produce({ kind, rtpParameters });
                 producer.enableTraceEvent(['rtp']);
-                producer.on('trace', (trace) => {
+                producer.on('trace', (trace: any``) => {
                     if (trace.type === 'rtp') {
                         console.log(`📡 [Producer ${producer.id}] RTP packet sent at`, trace.timestamp);
                     }
