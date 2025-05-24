@@ -1,5 +1,5 @@
-import {Server, Socket} from 'socket.io';
 import {Server as HttpServer} from 'http';
+import {Server, Socket} from 'socket.io';
 import MySocketInterface from "./mySocketInterface";
 
 const WEBSOCKET_CORS = {

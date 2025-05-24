@@ -14,21 +14,44 @@ export enum FunctionActionEnum {
 }
 
 export enum SocketEventEnum {
-    INIT = 'init',
-    JOIN_THREAD = 'thread:join',
-    LEAVE_THREAD = 'thread:leave',
-    MESSAGE = 'message',
-    START_TYPING = 'typing:start',
-    STOP_TYPING = 'typing:stop',
-    OFFER = 'rtc:offer',
-    ANSWER = 'rtc:answer',
-    END = 'rtc:end',
-    ICE_CANDIDATE = 'rtc:ice-candidate',
-    USER_ONLINE = 'presence:user_online',
-    USER_OFFLINE = 'presence:user_offline',
-    GET_ONLINE_USERS = 'get_online_users',
-    ONLINE_USERS = 'online_users',
-    ERROR = 'error',
-    DISCONNECT = 'disconnect',
-    CONNECT = 'connect',
+    INIT = "init",
+    JOIN_THREAD = "join-thread",
+    LEAVE_THREAD = "leave-thread",
+    GET_ONLINE_USERS = "get-online-users",
+    ONLINE_USERS = "online-users",
+    USER_ONLINE = "user-online",
+    USER_OFFLINE = "user-offline",
+    MESSAGE = "message",
+    START_TYPING = "start-typing",
+    STOP_TYPING = "stop-typing",
+
+    OFFER = "offer",
+    ANSWER = "answer",
+    ICE_CANDIDATE = "ice-candidate",
+    END = "end",
+
+    PUSH_TO_TALK = "push-to-talk",
+    USER_SPEAKING = "user-speaking",
+
+    ERROR = "error",
+
+    // Mediasoup-specific
+    GET_RTP_CAPABILITIES = "get-rtp-capabilities",
+    CREATE_TRANSPORT = "create-transport",
+    CONNECT_TRANSPORT = "connect-transport",
+
+    PRODUCE = "produce",
+
+    CREATE_RECV_TRANSPORT = "create-recv-transport",
+    CONNECT_RECV_TRANSPORT = "connect-recv-transport",
+
+    CONSUME = "consume",
+
+    // Call session management
+    CALL_START = "call:start",
+    CALL_END = "call:end",
+    CALL_ACTIVE = "call:active",
+
+    DISCONNECT = "disconnect",
 }
+
