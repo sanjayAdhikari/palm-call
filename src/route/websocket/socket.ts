@@ -220,58 +220,80 @@ export default class SocketLogic {
             }
         });
 
+        // When a user wants to start producing audio
         socket.on(SocketEventEnum.PRODUCE, async ({ kind, rtpParameters }) => {
             try {
-                console.log("PRODUCE")
+                console.log(`📥 PRODUCE request from ${socket.id}, kind=${kind}`);
+
                 const transport = (socket.data as any).sendTransport;
                 if (!transport) throw new Error("Send transport not initialized");
 
                 const producer = await transport.produce({ kind, rtpParameters });
-                producer.enableTraceEvent(['rtp']);
-                producer.on('trace', (trace: any) => {
-                    if (trace.type === 'rtp') {
+
+                // Optional: trace RTP activity for debugging
+                producer.enableTraceEvent(["rtp"]);
+                producer.on("trace", (trace: any) => {
+                    if (trace.type === "rtp") {
                         console.log(`📡 [Producer ${producer.id}] RTP packet sent at`, trace.timestamp);
                     }
                 });
 
+                // Save producer in room session
                 addProducer(meetingId, socket.id, producer);
+
+                // Acknowledge producer created
                 socket.emit(SocketEventEnum.PRODUCE, { id: producer.id });
             } catch (err) {
-                console.error("Error in produce", err);
+                console.error("❌ Error in produce", err);
                 socket.emit(SocketEventEnum.ERROR, { message: "Producing media failed" });
             }
         });
 
+        // When a user wants to consume others' audio
         socket.on(SocketEventEnum.CONSUME, async ({ rtpCapabilities }) => {
             try {
+                console.log(`📥 CONSUME request from ${socket.id}`);
+
                 const room = await createRoomIfNotExists(meetingId);
                 const router = room.router;
+
                 const consumerTransport = (socket.data as any).recvTransport;
                 if (!consumerTransport) throw new Error("Recv transport not available");
 
-                const otherProducers = Array.from(room.producers.entries()).filter(([id]) => id !== socket.id);
+                // const otherProducers = Array.from(room.producers.entries()).filter(([id]) => id !== socket.id);
+                const otherProducers = [...room.producers.entries()];
+
+                console.log("🔍 Available producers for consumption:", otherProducers.length);
+
                 for (const [producerId, producer] of otherProducers) {
-                    if (router.canConsume({ producerId: producer.id, rtpCapabilities })) {
-                        const consumer = await consumerTransport.consume({
-                            producerId: producer.id,
-                            rtpCapabilities,
-                            paused: false,
-                        });
-                        addConsumer(meetingId, socket.id, consumer);
-                        console.log("Consumed", producer.id)
-                        socket.emit(SocketEventEnum.CONSUME, {
-                            id: consumer.id,
-                            producerId: producer.id,
-                            kind: consumer.kind,
-                            rtpParameters: consumer.rtpParameters,
-                        });
+                    if (!router.canConsume({ producerId: producer.id, rtpCapabilities })) {
+                        console.warn(`⚠️ Cannot consume producer ${producer.id}`);
+                        continue;
                     }
+
+                    const consumer = await consumerTransport.consume({
+                        producerId: producer.id,
+                        rtpCapabilities,
+                        paused: false,
+                    });
+
+                    addConsumer(meetingId, socket.id, consumer);
+
+                    console.log(`✅ Consumed producer ${producer.id} for ${socket.id}`);
+
+                    socket.emit(SocketEventEnum.CONSUME, {
+                        id: consumer.id,
+                        producerId: producer.id,
+                        kind: consumer.kind,
+                        rtpParameters: consumer.rtpParameters,
+                    });
                 }
             } catch (err) {
-                console.error("Error in consume", err);
+                console.error("❌ Error in consume", err);
                 socket.emit(SocketEventEnum.ERROR, { message: "Consuming media failed" });
             }
         });
+
     }
 
     async handleConnection(socket: Socket) {
